@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="yandex" content="noindex, nofollow">
+  <title>Вход в систему — Keramika Sintez Учет ламп</title>
+  <link rel="shortcut icon" href="img/favicon.svg" type="image/svg+xml">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- App Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme login-body">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <img src="img/favicon.svg" alt="Keramika Sintez" class="brand-logo-img">
+        </div>
+        <h1 class="login-title">Keramika Sintez</h1>
+        <p class="login-subtitle">Система учета продаж ламп и расчетов</p>
+      </div>
+
+      <div id="login-alert" class="alert alert-danger d-none">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="login-alert-text">Ошибка авторизации</span>
+      </div>
+
+      <form id="login-form" autocomplete="off" onsubmit="handleLogin(event)">
+        <!-- 1. Логин -->
+        <div class="form-group mb-3">
+          <label for="username" class="form-label">Имя пользователя / Логин</label>
+          <div class="input-icon-wrapper">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="username" name="username" class="form-control with-icon" placeholder="Логин" required autofocus autocomplete="off" value="">
+          </div>
+        </div>
+
+        <!-- 2. Пароль -->
+        <div class="form-group mb-3">
+          <label for="password" class="form-label">Пароль</label>
+          <div class="input-icon-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="password" name="password" class="form-control with-icon" placeholder="Пароль" required autocomplete="new-password" value="">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('password', 'pwd-icon')" title="Показать/скрыть пароль">
+              <i id="pwd-icon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Кодовое слово доступа -->
+        <div class="form-group mb-4">
+          <label for="code-word" class="form-label">Кодовое слово доступа</label>
+          <div class="input-icon-wrapper">
+            <i class="fa-solid fa-key input-icon" style="color: #60a5fa;"></i>
+            <input type="password" id="code-word" name="code_word" class="form-control with-icon" placeholder="Кодовое слово" required autocomplete="off" value="">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('code-word', 'code-icon')" title="Показать/скрыть кодовое слово">
+              <i id="code-icon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-login" class="btn btn-primary btn-block btn-lg glow-btn">
+          <span id="btn-login-text">Войти в систему</span>
+          <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Проверка если уже авторизован и очистка полей
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Гарантированная очистка полей
+      const form = document.getElementById('login-form');
+      if (form) form.reset();
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('code-word').value = '';
+
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          window.location.href = '/';
+        }
+      } catch (e) {}
+    });
+
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-login');
+      const btnText = document.getElementById('btn-login-text');
+      const alertBox = document.getElementById('login-alert');
+      const alertText = document.getElementById('login-alert-text');
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const code_word = document.getElementById('code-word').value.trim();
+
+      btn.disabled = true;
+      btnText.textContent = 'Проверка...';
+      alertBox.classList.add('d-none');
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, code_word })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Ошибка входа');
+        }
+
+        // Сохраняем токен в localStorage
+        localStorage.setItem('user_token', data.token);
+        localStorage.setItem('user_info', JSON.stringify(data.user));
+
+        window.location.href = '/';
+      } catch (err) {
+        alertText.textContent = err.message;
+        alertBox.classList.remove('d-none');
+        btn.disabled = false;
+        btnText.textContent = 'Войти в систему';
+      }
+    }
+  </script>
+</body>
+</html>

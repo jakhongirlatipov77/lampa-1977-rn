@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="yandex" content="noindex, nofollow">
+  <title>Keramika Sintez — CRM & Учет продаж ламп</title>
+  <link rel="shortcut icon" href="img/favicon.svg" type="image/svg+xml">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- App Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+  <!-- Основной контейнер приложения -->
+  <div id="app-container" class="app-layout">
+    
+    <!-- Боковое меню (Desktop & Tablet) -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="logo-icon">
+            <img src="img/favicon.svg" alt="Keramika Sintez" class="brand-logo-img">
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Keramika Sintez</span>
+            <span class="brand-subtitle">Учет продаж ламп</span>
+          </div>
+        </div>
+        <button id="sidebar-close-btn" class="sidebar-close-btn" aria-label="Закрыть меню">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="quick-new-order-btn-wrapper">
+        <button class="btn btn-primary btn-block btn-lg glow-btn" onclick="navigate('new-order')">
+          <i class="fa-solid fa-plus"></i>
+          <span>Новый заказ</span>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#dashboard" class="nav-link active" data-page="dashboard">
+              <i class="fa-solid fa-chart-pie"></i>
+              <span>Главная</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#orders" class="nav-link" data-page="orders">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <span>Продажи</span>
+              <span id="orders-badge" class="badge badge-accent"></span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#new-order" class="nav-link" data-page="new-order">
+              <i class="fa-solid fa-file-circle-plus"></i>
+              <span>Новый заказ</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#clients" class="nav-link" data-page="clients">
+              <i class="fa-solid fa-users"></i>
+              <span>Клиенты</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#products" class="nav-link" data-page="products">
+              <i class="fa-solid fa-list-check"></i>
+              <span>Прайс</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settlements" class="nav-link" data-page="settlements">
+              <i class="fa-solid fa-handshake"></i>
+              <span>Производители</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#payments" class="nav-link" data-page="payments">
+              <i class="fa-solid fa-money-bill-wave"></i>
+              <span>Выплаты</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#stats" class="nav-link" data-page="stats">
+              <i class="fa-solid fa-chart-line"></i>
+              <span>Статистика</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settings" class="nav-link" data-page="settings">
+              <i class="fa-solid fa-gear"></i>
+              <span>Настройки</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="user-avatar">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div class="user-info">
+            <span id="user-display-name" class="user-name">Администратор</span>
+            <span class="user-role">Владелец системы</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn-logout" title="Выйти из аккаунта">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Затемнение для мобильного меню -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Основная рабочая область -->
+    <div class="main-wrapper">
+      <!-- Верхняя панель (Header) -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="sidebar-toggle-btn" class="mobile-menu-btn" aria-label="Открыть меню">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="page-title-group">
+            <h1 id="page-title" class="page-title">Главная</h1>
+            <span id="page-subtitle" class="page-subtitle">Обзор ключевых показателей продаж</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Курс доллара к суму (Ипак Йули Банк) -->
+          <a href="https://ru.ipakyulibank.uz/" target="_blank" rel="noopener noreferrer" class="currency-rate-widget" title="Курс USD к суму — Банк Ипак Йули (нажмите для перехода на сайт)">
+            <div class="currency-icon-badge">
+              <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div class="currency-rate-content">
+              <div class="currency-rate-row">
+                <span class="currency-label">Покупка:</span>
+                <span id="rate-usd-buy" class="currency-val text-success">11 775</span>
+              </div>
+              <div class="currency-rate-row">
+                <span class="currency-label">Продажа:</span>
+                <span id="rate-usd-sell" class="currency-val text-primary">11 865</span>
+              </div>
+            </div>
+            <div class="currency-bank-tag">Ипак Йули</div>
+          </a>
+
+          <!-- Переключатель темы -->
+          <button id="theme-toggle-btn" class="theme-toggle-btn" title="Сменить тему">
+            <i class="fa-solid fa-moon theme-icon-dark"></i>
+            <i class="fa-solid fa-sun theme-icon-light"></i>
+          </button>
+
+          <!-- Выход -->
+          <button id="header-logout-btn" class="btn btn-sm btn-outline-danger" title="Выйти">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Контент страниц -->
+      <main id="main-content" class="main-content">
+        <div id="page-loading" class="page-loader">
+          <div class="spinner"></div>
+          <span>Загрузка данных...</span>
+        </div>
+        <div id="page-view" class="page-view-container"></div>
+      </main>
+    </div>
+
+    <!-- Нижняя мобильная панель навигации (Mobile Bottom Nav) -->
+    <nav class="mobile-bottom-nav">
+      <a href="#dashboard" class="mobile-nav-item active" data-page="dashboard">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Главная</span>
+      </a>
+      <a href="#orders" class="mobile-nav-item" data-page="orders">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span>Продажи</span>
+      </a>
+      <a href="#new-order" class="mobile-nav-item mobile-nav-center" data-page="new-order">
+        <div class="mobile-nav-fab">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+        <span>Заказ</span>
+      </a>
+      <a href="#clients" class="mobile-nav-item" data-page="clients">
+        <i class="fa-solid fa-users"></i>
+        <span>Клиенты</span>
+      </a>
+      <a href="#settlements" class="mobile-nav-item" data-page="settlements">
+        <i class="fa-solid fa-handshake"></i>
+        <span>Расчеты</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Модальные окна (Все всплывающие формы) -->
+  <div id="modal-container" class="modal-container">
+    
+    <!-- 1. Модальное окно: Добавить/Редактировать клиента -->
+    <div id="modal-client" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="modal-client-title" class="modal-title">Новый клиент</h3>
+          <button class="modal-close" onclick="closeModal('modal-client')">&times;</button>
+        </div>
+        <form id="form-client" onsubmit="handleClientSubmit(event)">
+          <input type="hidden" id="client-id" name="id">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="client-name" class="form-label">ФИО / Название клиента <span class="req">*</span></label>
+              <input type="text" id="client-name" name="name" class="form-control" placeholder="Иванов Иван Иванович" required autofocus>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="client-city" class="form-label">Город <span class="req">*</span></label>
+                <input type="text" id="client-city" name="city" class="form-control" placeholder="Ташкент" required>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="client-phone" class="form-label">Телефон</label>
+                <input type="text" id="client-phone" name="phone" class="form-control" placeholder="+998 90 123-45-67">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="client-price-type" class="form-label">Прайс-лист по умолчанию <span class="req">*</span></label>
+                <select id="client-price-type" name="price_type" class="form-control" required>
+                  <option value="1" selected>Прайс 1 (Розница)</option>
+                  <option value="2">Прайс 2 (Опт)</option>
+                  <option value="3">Прайс 3 (Иностранный)</option>
+                </select>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="client-address" class="form-label">Адрес доставки</label>
+                <input type="text" id="client-address" name="address" class="form-control" placeholder="ул. Амира Темура, 25">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="client-comment" class="form-label">Комментарий / Заметка</label>
+              <textarea id="client-comment" name="comment" class="form-control" rows="2" placeholder="Оптовый покупатель, скидка 5%..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-client')">Отмена</button>
+            <button type="submit" id="btn-save-client" class="btn btn-primary">
+              <i class="fa-solid fa-check"></i> Сохранить клиента
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. Модальное окно: Добавить/Редактировать лампу в прайсе -->
+    <div id="modal-product" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="modal-product-title" class="modal-title">Добавить лампу в прайс</h3>
+          <button class="modal-close" onclick="closeModal('modal-product')">&times;</button>
+        </div>
+        <form id="form-product" onsubmit="handleProductSubmit(event)">
+          <input type="hidden" id="product-id" name="id">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="product-name" class="form-label">Наименование лампы <span class="req">*</span></label>
+              <input type="text" id="product-name" name="name" class="form-control" placeholder="Лампа LED E27 15W Теплый свет" required autofocus>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="product-article" class="form-label">Артикул / Код</label>
+                <input type="text" id="product-article" name="article" class="form-control" placeholder="LMP-E27-15W">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="product-unit" class="form-label">Единица измерения</label>
+                <input type="text" id="product-unit" name="unit" class="form-control" value="шт" placeholder="шт">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="product-sale-price" class="form-label">Прайс 1 (Розница) <span class="req">*</span></label>
+                <input type="number" id="product-sale-price" name="sale_price" class="form-control font-bold text-primary" min="0" step="any" placeholder="35000" required oninput="calculateProductMarginPreview()">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="product-sale-price-2" class="form-label">Прайс 2 (Опт) <span class="req">*</span></label>
+                <input type="number" id="product-sale-price-2" name="sale_price_2" class="form-control font-bold text-accent" min="0" step="any" placeholder="28000" required oninput="calculateProductMarginPreview()">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="product-sale-price-3" class="form-label">Прайс 3 (Иностранный) <span class="req">*</span></label>
+                <input type="number" id="product-sale-price-3" name="sale_price_3" class="form-control font-bold text-purple" min="0" step="any" placeholder="25000" required oninput="calculateProductMarginPreview()">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="product-cost-price" class="form-label">Себестоимость: Прайс 1 и 3 <span class="req">*</span></label>
+                <input type="number" id="product-cost-price" name="cost_price" class="form-control text-warning font-bold" min="0" step="any" placeholder="21000" required oninput="calculateProductMarginPreview()">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="product-cost-price-2" class="form-label">Себестоимость: Прайс 2 (Опт) <span class="req">*</span></label>
+                <input type="number" id="product-cost-price-2" name="cost_price_2" class="form-control text-warning font-bold" min="0" step="any" placeholder="18000" required oninput="calculateProductMarginPreview()">
+              </div>
+            </div>
+            
+            <div id="product-margin-preview" class="margin-preview-box" style="flex-direction: column; gap: 0.4rem; padding: 0.85rem 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Прайс 1 (Розница): <strong>Маржа 1</strong></span>
+                <strong id="preview-unit-profit-1" class="text-primary" style="font-size: 1.05rem;">0 сум</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 0.4rem;">
+                <span>Прайс 2 (Опт): <strong>Маржа 2</strong></span>
+                <strong id="preview-unit-profit-2" class="text-accent" style="font-size: 1.05rem;">0 сум</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 0.4rem;">
+                <span>Прайс 3 (Иностранный): <strong>Маржа 3</strong></span>
+                <strong id="preview-unit-profit-3" class="text-purple" style="font-size: 1.05rem;">0 сум</strong>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="product-manufacturer" class="form-label">Производитель / Бренд</label>
+                <input type="text" id="product-manufacturer" name="manufacturer" class="form-control" placeholder="Завод №1">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="product-active" class="form-label">Статус лампы</label>
+                <select id="product-active" name="active" class="form-control">
+                  <option value="1">Активна (в продаже)</option>
+                  <option value="0">В архиве (скрыта из новых заказов)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-product')">Отмена</button>
+            <button type="submit" id="btn-save-product" class="btn btn-primary">
+              <i class="fa-solid fa-check"></i> Сохранить в прайс
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 3. Модальное окно: Добавить/Редактировать выплату производителю -->
+    <div id="modal-payment" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="modal-payment-title" class="modal-title">Внести выплату производителю</h3>
+          <button class="modal-close" onclick="closeModal('modal-payment')">&times;</button>
+        </div>
+        <form id="form-payment" onsubmit="handlePaymentSubmit(event)">
+          <input type="hidden" id="payment-id" name="id">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="payment-manufacturer-id" class="form-label">Производитель <span class="req">*</span></label>
+              <select id="payment-manufacturer-id" name="manufacturer_id" class="form-control" required></select>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="payment-date" class="form-label">Дата выплаты <span class="req">*</span></label>
+                <input type="date" id="payment-date" name="payment_date" class="form-control" required>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="payment-amount" class="form-label">Сумма выплаты (сум) <span class="req">*</span></label>
+                <input type="number" id="payment-amount" name="amount" class="form-control" min="1" step="any" placeholder="1000000" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="payment-method" class="form-label">Способ оплаты <span class="req">*</span></label>
+              <select id="payment-method" name="payment_method" class="form-control" required>
+                <option value="Наличные">Наличные</option>
+                <option value="Перевод на карту (P2P)">Перевод на карту (P2P)</option>
+                <option value="Расчетный счет / Банк">Расчетный счет / Банк</option>
+                <option value="Взаимозачет">Взаимозачет</option>
+                <option value="Прочее">Прочее</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="payment-comment" class="form-label">Комментарий / Примечание</label>
+              <textarea id="payment-comment" name="comment" class="form-control" rows="2" placeholder="Аванс за поставку, чек №123..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Отмена</button>
+            <button type="submit" id="btn-save-payment" class="btn btn-primary">
+              <i class="fa-solid fa-check"></i> Зафиксировать выплату
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 4. Модальное окно: Просмотр деталей заказа -->
+    <div id="modal-order-details" class="modal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h3 id="modal-order-title" class="modal-title">Детали заказа</h3>
+          <button class="modal-close" onclick="closeModal('modal-order-details')">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-order-details-content">
+          <!-- Динамически заполняется через JS -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-order-details')">Закрыть</button>
+          <button type="button" id="btn-modal-order-edit" class="btn btn-outline-primary" onclick="editOrderFromDetails()">
+            <i class="fa-solid fa-pen-to-square"></i> Редактировать
+          </button>
+          <button type="button" id="btn-modal-order-delete" class="btn btn-outline-danger" onclick="deleteOrderFromDetails()">
+            <i class="fa-solid fa-trash-can"></i> Удалить из базы
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Модальное окно: Карточка клиента с историей заказов -->
+    <div id="modal-client-details" class="modal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h3 id="modal-client-details-title" class="modal-title">История и профиль клиента</h3>
+          <button class="modal-close" onclick="closeModal('modal-client-details')">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-client-details-content">
+          <!-- Динамически заполняется через JS -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-client-details')">Закрыть</button>
+          <button type="button" class="btn btn-primary" onclick="createOrderForClient()">
+            <i class="fa-solid fa-cart-plus"></i> Оформить заказ клиенту
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Модальное окно: Настройки распределения прибыли между производителями -->
+    <div id="modal-mfg-settings" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 class="modal-title">Настройки производителей и долей прибыли</h3>
+          <button class="modal-close" onclick="closeModal('modal-mfg-settings')">&times;</button>
+        </div>
+        <form id="form-mfg-settings" onsubmit="handleMfgSettingsSubmit(event)">
+          <div class="modal-body">
+            <div class="alert alert-info">
+              <i class="fa-solid fa-circle-info"></i>
+              Сумма долей двух производителей должна быть строго равна <strong>100%</strong>. Изменение долей мгновенно пересчитывает балансы.
+            </div>
+
+            <!-- Производитель 1 -->
+            <div class="card p-3 mb-3 bg-subtle">
+              <h5 class="text-primary font-bold mb-2">Производитель №1</h5>
+              <div class="form-group">
+                <label class="form-label">Наименование / ФИО</label>
+                <input type="text" id="mfg1-name" name="mfg1_name" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Доля чистой прибыли (%)</label>
+                <input type="number" id="mfg1-percentage" name="mfg1_percentage" class="form-control" min="0" max="100" step="any" required oninput="autoBalanceMfgPct(1)">
+              </div>
+            </div>
+
+            <!-- Производитель 2 -->
+            <div class="card p-3 mb-3 bg-subtle">
+              <h5 class="text-accent font-bold mb-2">Производитель №2</h5>
+              <div class="form-group">
+                <label class="form-label">Наименование / ФИО</label>
+                <input type="text" id="mfg2-name" name="mfg2_name" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Доля чистой прибыли (%)</label>
+                <input type="number" id="mfg2-percentage" name="mfg2_percentage" class="form-control" min="0" max="100" step="any" required oninput="autoBalanceMfgPct(2)">
+              </div>
+            </div>
+
+            <div class="text-center font-bold" id="mfg-total-pct-status">
+              Итого: <span id="mfg-total-pct-val">100%</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-mfg-settings')">Отмена</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Сохранить настройки
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 7. Модальное окно: Добавление / Редактирование кодового слова доступа -->
+    <div id="modal-passcode" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="modal-passcode-title" class="modal-title">Добавить кодовое слово</h3>
+          <button class="modal-close" onclick="closeModal('modal-passcode')">&times;</button>
+        </div>
+        <form id="form-passcode" onsubmit="handlePasscodeFormSubmit(event)">
+          <input type="hidden" id="passcode-id">
+          <div class="modal-body">
+            <div class="form-group mb-3">
+              <label class="form-label" for="passcode-word">Кодовое слово доступа <span class="req">*</span></label>
+              <input type="text" id="passcode-word" class="form-control font-bold font-mono" placeholder="например: КЕРАМИКА или 21177" required autofocus style="text-transform: uppercase;">
+              <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+                Это слово нужно вводить при входе на любом компьютере или телефоне
+              </small>
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-label" for="passcode-assigned">Кому выдано / Назначение <span class="req">*</span></label>
+              <input type="text" id="passcode-assigned" class="form-control" placeholder="например: Компьютер Ислома или Менеджер склада" required>
+            </div>
+
+            <div class="form-group mb-0">
+              <label class="form-label" for="passcode-status">Статус доступа <span class="req">*</span></label>
+              <select id="passcode-status" class="form-control">
+                <option value="active">Активно (Вход разрешен)</option>
+                <option value="blocked">Заблокировано (Вход запрещен)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-passcode')">Отмена</button>
+            <button type="submit" id="btn-save-passcode" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> <span id="btn-save-passcode-text">Сохранить кодовое слово</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 8. Модальное окно: Добавление / Редактирование пользователя -->
+    <div id="modal-user" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="modal-user-title" class="modal-title">Добавить пользователя</h3>
+          <button class="modal-close" onclick="closeModal('modal-user')">&times;</button>
+        </div>
+        <form id="form-user" onsubmit="handleUserFormSubmit(event)">
+          <input type="hidden" id="user-id">
+          <div class="modal-body">
+            <div class="form-group mb-3">
+              <label class="form-label" for="user-username">Имя пользователя (Логин) <span class="req">*</span></label>
+              <input type="text" id="user-username" class="form-control font-bold font-mono" placeholder="например: islom или manager1" required autofocus autocomplete="off">
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-label" for="user-fullname">ФИО / Должность <span class="req">*</span></label>
+              <input type="text" id="user-fullname" class="form-control" placeholder="например: Ислом Каримов (Менеджер)" required>
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-label" for="user-password">Пароль <span id="user-password-req" class="req">*</span></label>
+              <input type="password" id="user-password" class="form-control" placeholder="Минимум 6 символов" minlength="6" autocomplete="new-password">
+              <small id="user-password-hint" class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+                Придумайте надежный пароль для входа в систему
+              </small>
+            </div>
+
+            <div class="form-group mb-0">
+              <label class="form-label" for="user-role">Роль в системе <span class="req">*</span></label>
+              <select id="user-role" class="form-control">
+                <option value="admin">Администратор (Полный доступ к настройкам и прибыли)</option>
+                <option value="manager">Менеджер (Работа с заказами, товарами и клиентами)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-user')">Отмена</button>
+            <button type="submit" id="btn-save-user" class="btn btn-primary">
+              <i class="fa-solid fa-user-plus"></i> <span id="btn-save-user-text">Создать пользователя</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Всплывающие уведомления (Toasts) -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Скрипты приложения -->
+  <script src="js/app.js"></script>
+  <script src="js/pages/dashboard.js"></script>
+  <script src="js/pages/orders.js"></script>
+  <script src="js/pages/new-order.js"></script>
+  <script src="js/pages/clients.js"></script>
+  <script src="js/pages/products.js"></script>
+  <script src="js/pages/settlements.js"></script>
+  <script src="js/pages/payments.js"></script>
+  <script src="js/pages/stats.js"></script>
+  <script src="js/pages/settings.js"></script>
+</body>
+</html>

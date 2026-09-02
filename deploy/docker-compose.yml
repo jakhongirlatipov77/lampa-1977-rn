@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  lamp-crm:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: lamp_crm_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+    volumes:
+      # Постоянное хранилище базы данных на диске хоста (Ubuntu)
+      - lamp_crm_data:/app/data
+
+volumes:
+  lamp_crm_data:
+    driver: local
