@@ -282,6 +282,34 @@ async function runTests() {
     );
     console.log(`  ✔️ Заказ по Прайсу 3 (Full) создан. Сумма: ${fullTotal}, Себест: ${fullCostTotal}, Прибыль: ${fullProfit}`);
 
+    // 16. Тест распределения прибыли для конкретного отдельного заказа (Детали заказа)
+    const testOrder = await get('SELECT * FROM orders WHERE id = ?', [orderFull.id]);
+    const currentMfgs = await query('SELECT id, name, percentage FROM manufacturers ORDER BY id ASC');
+    const orderDistribution = currentMfgs.map(m => ({
+      name: m.name,
+      percentage: m.percentage,
+      share: Math.round(testOrder.profit_total * (m.percentage / 100) * 100) / 100
+    }));
+
+    if (orderDistribution[0].share !== 50 || orderDistribution[1].share !== 50) {
+      throw new Error(`Ошибка расчета распределения прибыли по заказу 50/50: П1=${orderDistribution[0].share}, П2=${orderDistribution[1].share}`);
+    }
+    console.log(`  ✔️ Распределение прибыли для конкретного заказа (50/50): ${orderDistribution[0].name} (${orderDistribution[0].percentage}%) = ${orderDistribution[0].share}, ${orderDistribution[1].name} (${orderDistribution[1].percentage}%) = ${orderDistribution[1].share}`);
+
+    // Проверяем с изменением долей на 70/30:
+    await run('UPDATE manufacturers SET percentage = 70 WHERE id = 1');
+    await run('UPDATE manufacturers SET percentage = 30 WHERE id = 2');
+    const updatedMfgs = await query('SELECT id, name, percentage FROM manufacturers ORDER BY id ASC');
+    const orderDistribution7030 = updatedMfgs.map(m => ({
+      name: m.name,
+      percentage: m.percentage,
+      share: Math.round(testOrder.profit_total * (m.percentage / 100) * 100) / 100
+    }));
+    if (orderDistribution7030[0].share !== 70 || orderDistribution7030[1].share !== 30) {
+      throw new Error(`Ошибка расчета распределения прибыли по заказу 70/30: П1=${orderDistribution7030[0].share}, П2=${orderDistribution7030[1].share}`);
+    }
+    console.log(`  ✔️ Распределение прибыли для конкретного заказа (70/30): ${orderDistribution7030[0].name} (${orderDistribution7030[0].percentage}%) = ${orderDistribution7030[0].share}, ${orderDistribution7030[1].name} (${orderDistribution7030[1].percentage}%) = ${orderDistribution7030[1].share}`);
+
     console.log('\n=================================================');
     console.log('🎉 ВСЕ ТЕСТЫ РАСЧЕТОВ И ЦЕЛОСТНОСТИ БАЗЫ ДАННЫХ ПРОЙДЕНЫ УСПЕШНО!');
     console.log('=================================================\n');

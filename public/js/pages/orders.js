@@ -311,6 +311,54 @@ async function viewOrderDetails(orderId) {
     ? '<span class="badge badge-purple"><i class="fa-solid fa-bolt"></i> Прайс 3 (Иностранный)</span>'
     : (pt === 2 ? '<span class="badge badge-success"><i class="fa-solid fa-tags"></i> Прайс 2 (Опт)</span>' : '<span class="badge badge-primary"><i class="fa-solid fa-tag"></i> Прайс 1 (Розница)</span>');
 
+  // Распределение прибыли по заказу между производителями
+  let mfgList = ord.profit_distribution || [];
+  if (!mfgList || mfgList.length === 0) {
+    const mfgData = await api('/api/manufacturers');
+    if (mfgData && mfgData.manufacturers) {
+      const isCancelledOrder = ord.status === 'cancelled';
+      mfgList = mfgData.manufacturers.map(m => ({
+        id: m.id,
+        name: m.name,
+        percentage: m.percentage,
+        share: isCancelledOrder ? 0 : Math.round(ord.profit_total * (m.percentage / 100) * 100) / 100
+      }));
+    }
+  }
+
+  const isCancelled = ord.status === 'cancelled';
+
+  const mfgCardsHtml = (mfgList && mfgList.length > 0) ? mfgList.map((m, idx) => {
+    const isFirst = idx === 0;
+    const accentColor = isFirst ? 'var(--primary)' : 'var(--accent)';
+    const cardBg = isFirst ? 'rgba(59, 130, 246, 0.08)' : 'rgba(16, 185, 129, 0.08)';
+    const cardBorder = isFirst ? 'rgba(59, 130, 246, 0.25)' : 'rgba(16, 185, 129, 0.25)';
+    const badgeBg = isFirst ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+    const badgeBorder = isFirst ? 'rgba(59, 130, 246, 0.35)' : 'rgba(16, 185, 129, 0.35)';
+
+    return `
+      <div style="background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: var(--radius-md); padding: 1rem 1.15rem; display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+          <span class="font-bold" style="font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 0.45rem;">
+            <i class="fa-solid fa-industry" style="color: ${accentColor}; font-size: 0.95rem;"></i>
+            ${m.name}
+          </span>
+          <span class="badge" style="background: ${badgeBg}; color: ${accentColor}; border: 1px solid ${badgeBorder}; font-weight: 700; font-size: 0.8rem;">
+            ${m.percentage}%
+          </span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed ${cardBorder};">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Начислено с заказа:</span>
+          <strong style="font-size: 1.2rem; color: ${accentColor}; font-weight: 800;">
+            ${formatMoney(m.share)}
+          </strong>
+        </div>
+      </div>
+    `;
+  }).join('') : `
+    <div style="color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem;">Производители не настроены в системе</div>
+  `;
+
   content.innerHTML = `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; background: var(--bg-subtle); padding: 1.25rem; border-radius: var(--radius-md);">
       <div>
@@ -365,7 +413,7 @@ async function viewOrderDetails(orderId) {
       </table>
     </div>
 
-    <div class="order-summary-box">
+    <div class="order-summary-box mb-3">
       <div class="summary-row">
         <span>Общая сумма продажи:</span>
         <strong style="font-size: 1.15rem;">${formatMoney(ord.total_amount)}</strong>
@@ -377,6 +425,20 @@ async function viewOrderDetails(orderId) {
       <div class="summary-row total-row">
         <span>Чистая прибыль по заказу:</span>
         <span>${formatMoney(ord.profit_total)}</span>
+      </div>
+    </div>
+
+    <!-- Распределение чистой прибыли по заказу -->
+    <div style="background: linear-gradient(135deg, rgba(31, 41, 55, 0.75), rgba(17, 24, 39, 0.9)); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-scale-balanced text-primary" style="font-size: 1.1rem;"></i>
+          <h5 class="font-bold" style="margin: 0; font-size: 0.95rem;">Распределение прибыли по заказу</h5>
+        </div>
+        ${isCancelled ? '<span class="badge badge-danger">Заказ отменен (0 сум)</span>' : `<span style="font-size: 0.775rem; color: var(--text-dim);"><i class="fa-solid fa-circle-info"></i> Доли из настроек системы</span>`}
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        ${mfgCardsHtml}
       </div>
     </div>
   `;

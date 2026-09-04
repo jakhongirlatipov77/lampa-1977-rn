@@ -7,15 +7,15 @@ const router = express.Router();
 // Получить список всех заказов с фильтрацией и поиском
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const { 
-      search, 
-      client_id, 
-      city, 
-      product_id, 
-      status, 
-      date_from, 
-      date_to, 
-      month, 
+    const {
+      search,
+      client_id,
+      city,
+      product_id,
+      status,
+      date_from,
+      date_to,
+      month,
       year,
       sort,
       order
@@ -168,7 +168,20 @@ router.get('/:id', requireAuth, async (req, res) => {
     const items = await db.query('SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC', [id]);
     order.items = items;
 
-    res.json({ order });
+    // Расчет распределения прибыли между производителями для данного конкретного заказа
+    const manufacturers = await db.query('SELECT id, name, percentage FROM manufacturers ORDER BY id ASC');
+    const isCancelled = order.status === 'cancelled';
+    order.profit_distribution = (manufacturers || []).map(m => {
+      const share = isCancelled ? 0 : Math.round(order.profit_total * (m.percentage / 100) * 100) / 100;
+      return {
+        id: m.id,
+        name: m.name,
+        percentage: m.percentage,
+        share: share
+      };
+    });
+
+    res.json({ order, manufacturers: order.profit_distribution });
   } catch (error) {
     console.error('Error fetching order:', error);
     res.status(500).json({ error: 'Ошибка получения заказа' });
@@ -283,8 +296,8 @@ router.post('/', requireAuth, async (req, res) => {
     orderCostTotal = Math.round(orderCostTotal * 100) / 100;
     orderProfitTotal = Math.round(orderProfitTotal * 100) / 100;
 
-    const orderStatus = req.body.status && ['in_process', 'shipped', 'completed', 'cancelled', 'active'].includes(req.body.status) 
-      ? req.body.status 
+    const orderStatus = req.body.status && ['in_process', 'shipped', 'completed', 'cancelled', 'active'].includes(req.body.status)
+      ? req.body.status
       : 'in_process';
 
     // Вставляем заказ
